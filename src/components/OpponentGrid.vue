@@ -8,7 +8,8 @@
       </div>
       <div v-for="(row, rowIndex) in rows" :key="rowIndex" class="row">
         <div class="row-label">{{ rowLabels[rowIndex] }}</div>
-        <div v-for="cell in row" :key="cell.id" :class="['cell', isShipCell(rowIndex, cell.id) ? 'ship-cell' : '']">
+        <div v-for="cell in row" :key="cell.id" :class="['cell', getCellClass(rowIndex, cell.id)]"
+          @click="selectCell(rowIndex, cell.id)">
         </div>
       </div>
     </div>
@@ -30,11 +31,19 @@ export default {
     showShips: {
       type: Boolean,
       default: false
+    },
+    shots: {
+      type: Array,
+      default: () => []
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     return {
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-unused-vars
       rows: Array.from({ length: 10 }, (_, rowIndex) =>
         Array.from({ length: 10 }, (__, cellIndex) => ({
           id: cellIndex,
@@ -51,6 +60,18 @@ export default {
       return this.ships.some(ship =>
         ship.coordinates.some(coord => coord.x === rowIndex && coord.y === cellIndex)
       );
+    },
+    getCellClass(rowIndex, cellIndex) {
+      const shot = this.shots.find(shot => shot.x === rowIndex && shot.y === cellIndex);
+      if (shot) {
+        return shot.hit ? 'hit-cell' : 'miss-cell';
+      }
+      return '';
+    },
+    selectCell(rowIndex, cellIndex) {
+      if (this.disabled) return;
+      if (this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex)) return;
+      this.$emit('cellSelected', rowIndex, cellIndex);
     }
   }
 };
@@ -81,6 +102,13 @@ export default {
 .cell {
   background-color: lightblue;
   border: 1px solid #333;
+  cursor: pointer;
+}
+.hit-cell {
+  background-color: red;
+}
+.miss-cell {
+  background-color: white;
 }
 .ship-cell {
   background-color: darkblue;

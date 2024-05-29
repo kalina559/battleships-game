@@ -26,11 +26,15 @@
       ships: {
         type: Array,
         default: () => []
+      },
+      shots: {
+        type: Array,
+        default: () => []
       }
     },
     data() {
       return {
-        // eslint-disable-next-line
+        // eslint-disable-next-line no-unused-vars
         rows: Array.from({ length: 10 }, (_, rowIndex) =>
           Array.from({ length: 10 }, (__, cellIndex) => ({
             id: cellIndex,
@@ -54,6 +58,7 @@
         this.updateCurrentShipCoordinates();
       },
       handleKeydown(event) {
+        if (this.currentShip.size === 0) return;
         const key = event.key;
         switch (key) {
           case 'ArrowUp':
@@ -126,6 +131,9 @@
         this.updateCurrentShipCoordinates();
       },
       getCellClass(rowIndex, cellIndex) {
+        if (this.isShotCell(rowIndex, cellIndex)) {
+          return this.isHitCell(rowIndex, cellIndex) ? 'hit-cell' : 'miss-cell';
+        }
         if (this.isShipCell(rowIndex, cellIndex)) {
           return 'ship-cell';
         }
@@ -133,6 +141,12 @@
           return this.isValidPosition(this.currentShipPosition, this.currentShip.size, this.currentShipDirection) ? 'valid-ship' : 'invalid-ship';
         }
         return '';
+      },
+      isShotCell(rowIndex, cellIndex) {
+        return this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex);
+      },
+      isHitCell(rowIndex, cellIndex) {
+        return this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex && shot.hit);
       },
       isShipCell(rowIndex, cellIndex) {
         return this.placedShips.some(ship =>
@@ -177,6 +191,12 @@
   }
   .invalid-ship {
     background-color: lightcoral;
+  }
+  .hit-cell {
+    background-color: red;
+  }
+  .miss-cell {
+    background-color: white;
   }
   .ship-cell {
     background-color: darkblue;

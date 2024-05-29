@@ -5,10 +5,17 @@
       <Menu v-if="!gameStarted" @startGame="startGame" />
       <div v-if="gameStarted" class="grids">
         <div class="phase">{{ gamePhaseText }}</div>
-        <OpponentGrid title="Opponent's Grid" :ships="opponentShips" :showShips="true" />
-        <UserGrid title="Player's Grid" :ships="playerShips" @shipPlaced="onShipPlaced" />
+        <OpponentGrid title="Opponent's Grid" :ships="opponentShips" :showShips="gamePhase !== 'placingShips'"
+          :shots="playerShots" @cellSelected="handleUserShot" :disabled="currentPlayer !== 'player'" />
+        <UserGrid title="Player's Grid" :ships="playerShips" :shots="opponentShots" @shipPlaced="onShipPlaced" />
       </div>
       <Help />
+      <div v-if="winner" class="modal">
+        <div class="modal-content">
+          <p>{{ winnerMessage }}</p>
+          <button @click="resetGame">Play Again</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -19,7 +26,7 @@ import UserGrid from './components/UserGrid.vue';
 import OpponentGrid from './components/OpponentGrid.vue';
 import Help from './components/Help.vue';
 import Menu from './components/Menu.vue';
-import axios from 'axios';
+import GameApi from './api/GameApi';
 
 export default {
   name: 'App',
@@ -45,7 +52,11 @@ export default {
         { size: 3 },
         { size: 2 },
         { size: 1 }
-      ]
+      ],
+      currentPlayer: null,
+      opponentShots: [],
+      playerShots: [],
+      winner: null
     };
   },
   computed: {
@@ -56,12 +67,15 @@ export default {
         case 'waitingOpponent':
           return 'Waiting for opponent to deploy ships';
         case 'playerTurn':
-          return 'User\'s turn';
+          return 'Your turn';
         case 'opponentTurn':
           return 'Opponent\'s turn';
         default:
           return '';
       }
+    },
+    winnerMessage() {
+      return this.winner === 'player' ? 'User won!' : 'AI won!';
     }
   },
   methods: {
@@ -69,19 +83,16 @@ export default {
       this.selectedAi = aiType;
       this.gameStarted = true;
 
-      // Placeholder for calling backend to get opponent's ships
-      // In a real app, you would call an endpoint like `shipLocations/opponent`
+      // Fetch opponent's ships
       try {
-        const response = await axios.get('https://example.com/shipLocations/opponent');
-        this.opponentShips = response.data; // Assuming the response contains the ship locations
+        this.opponentShips = await GameApi.getOpponentShips();
         this.opponentShipsSet = true;
-        this.checkPhaseTransition();
+        this.checkPhaseTransition(); // Ensure transition is checked here
       } catch (error) {
-        console.error('Failed to fetch opponent ships:', error);
         // Mock data for now
         this.opponentShips = this.generateMockShips();
         this.opponentShipsSet = true;
-        this.checkPhaseTransition();
+        this.checkPhaseTransition(); // Ensure transition is checked here
       }
     },
     onShipPlaced(ships, placedShipSize) {
@@ -89,22 +100,100 @@ export default {
       this.availableShips = this.availableShips.filter(ship => ship.size !== placedShipSize);
       this.playerShipsSet = this.availableShips.length === 0;
 
-      // Placeholder for calling backend to set user ships
-      // In a real app, you would call an endpoint like `shipLocations/user`
-      axios.post('https://example.com/shipLocations/user', ships)
-        .then(() => {
-          this.checkPhaseTransition();
-        })
-        .catch(error => {
-          console.error('Failed to set user ships:', error);
-        });
+      if (this.playerShipsSet) {
+        GameApi.setUserShips(ships)
+          .then(() => {
+            this.checkPhaseTransition(); // Ensure transition is checked here
+          })
+          .catch(error => {
+            console.error('Failed to set user ships:', error);
+          });
+      }
     },
     checkPhaseTransition() {
       if (this.playerShipsSet && this.opponentShipsSet) {
-        this.gamePhase = 'playerTurn';
+        this.determineStartingPlayer();
       } else if (this.playerShipsSet) {
         this.gamePhase = 'waitingOpponent';
+      } else if (this.opponentShipsSet) {
+        this.gamePhase = 'placingShips';
       }
+    },
+    determineStartingPlayer() {
+      const randomStart = Math.random() < 0.5;
+      this.currentPlayer = randomStart ? 'player' : 'opponent';
+      this.gamePhase = randomStart ? 'playerTurn' : 'opponentTurn';
+      if (!randomStart) {
+        this.opponentMove();
+      }
+    },
+    async opponentMove() {
+      const move = await GameApi.getAIMove();
+      const hit = this.playerShips.some(ship =>
+        ship.coordinates.some(coord => coord.x === move.x && coord.y === move.y)
+      );
+      this.opponentShots.push({ ...move, hit });
+      this.checkWinCondition();
+      if (!this.winner) {
+        this.switchTurn();
+      }
+    },
+    handleUserShot(x, y) {
+      if (this.currentPlayer !== 'player') return;
+      const hit = this.opponentShips.some(ship =>
+        ship.coordinates.some(coord => coord.x === x && coord.y === y)
+      );
+      this.playerShots.push({ x, y, hit });
+      this.checkWinCondition();
+      if (!this.winner) {
+        this.switchTurn();
+      }
+    },
+    switchTurn() {
+      this.currentPlayer = this.currentPlayer === 'player' ? 'opponent' : 'player';
+      this.gamePhase = this.currentPlayer === 'player' ? 'playerTurn' : 'opponentTurn';
+      if (this.currentPlayer === 'opponent') {
+        setTimeout(() => {
+          this.opponentMove();
+        }, 1000);
+      }
+    },
+    checkWinCondition() {
+      const allPlayerShipsSunk = this.playerShips.every(ship =>
+        ship.coordinates.every(coord =>
+          this.opponentShots.some(shot => shot.x === coord.x && shot.y === coord.y)
+        )
+      );
+      const allOpponentShipsSunk = this.opponentShips.every(ship =>
+        ship.coordinates.every(coord =>
+          this.playerShots.some(shot => shot.x === coord.x && shot.y === coord.y)
+        )
+      );
+      if (allPlayerShipsSunk) {
+        this.winner = 'opponent';
+      } else if (allOpponentShipsSunk) {
+        this.winner = 'player';
+      }
+    },
+    resetGame() {
+      this.gameStarted = false;
+      this.selectedAi = null;
+      this.gamePhase = 'placingShips';
+      this.playerShips = [];
+      this.opponentShips = [];
+      this.playerShipsSet = false;
+      this.opponentShipsSet = false;
+      this.availableShips = [
+        { size: 5 },
+        { size: 4 },
+        { size: 3 },
+        { size: 2 },
+        { size: 1 }
+      ];
+      this.currentPlayer = null;
+      this.opponentShots = [];
+      this.playerShots = [];
+      this.winner = null;
     },
     generateMockShips() {
       // Generate mock ship locations for the opponent
@@ -126,27 +215,47 @@ export default {
   flex-direction: column;
   align-items: center;
 }
+
 .grids {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 .phase {
   margin-bottom: 20px;
   font-size: 18px;
   font-weight: bold;
 }
+
 .ship-list {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
 }
+
 .ship {
   margin: 10px;
   padding: 10px;
   background-color: lightgray;
   border: 1px solid #333;
   cursor: grab;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border: 1px solid #333;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  text-align: center;
 }
 </style>
