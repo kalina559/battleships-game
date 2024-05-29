@@ -224,7 +224,6 @@ export default {
       previousShots.length = 0; // Reset previous shots
     },
     generateMockShips() {
-      // Generate mock ship locations for the opponent
       return [
         { size: 5, coordinates: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 0, y: 3 }, { x: 0, y: 4 }] },
         { size: 4, coordinates: [{ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 2, y: 5 }] },
