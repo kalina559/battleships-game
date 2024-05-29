@@ -41,6 +41,7 @@ import Help from './components/Help.vue';
 import Menu from './components/Menu.vue';
 import GameApi from './api/GameApi';
 
+//TODO remove once we start using backend for AI moves
 const previousShots = [];
 
 export default {
