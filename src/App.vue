@@ -41,6 +41,8 @@ import Help from './components/Help.vue';
 import Menu from './components/Menu.vue';
 import GameApi from './api/GameApi';
 
+const previousShots = [];
+
 export default {
   name: 'App',
   components: {
@@ -97,6 +99,9 @@ export default {
     async startGame(aiType) {
       this.selectedAi = aiType;
       this.gameStarted = true;
+
+      // Reset previous shots for a new game
+      previousShots.length = 0;
 
       // Fetch opponent's ships
       try {
@@ -215,17 +220,61 @@ export default {
       this.winner = null;
       this.opponentFeedbackMessage = '';
       this.playerFeedbackMessage = '';
+      previousShots.length = 0; // Reset previous shots
     },
     generateMockShips() {
-      // Generate mock ship locations for the opponent
-      return [
-        { size: 5, coordinates: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 0, y: 3 }, { x: 0, y: 4 }] },
-        { size: 4, coordinates: [{ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 2, y: 5 }] },
-        { size: 3, coordinates: [{ x: 5, y: 5 }, { x: 5, y: 6 }, { x: 5, y: 7 }] },
-        { size: 2, coordinates: [{ x: 7, y: 8 }, { x: 7, y: 9 }] },
-        { size: 1, coordinates: [{ x: 9, y: 0 }] }
+      const ships = [];
+      const sizes = [5, 4, 3, 2, 1];
+
+      const isValidPlacement = (coordinates) => {
+        return coordinates.every(coord => {
+          const { x, y } = coord;
+          return (
+            x >= 0 && x < 10 && y >= 0 && y < 10 &&
+            !ships.some(ship => ship.coordinates.some(c => c.x === x && c.y === y)) &&
+            !coordinates.some(c => this.isAdjacentOccupiedMock(c.x, c.y, ships))
+          );
+        });
+      };
+
+      const placeShip = (size) => {
+        let placed = false;
+        while (!placed) {
+          const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+          const x = Math.floor(Math.random() * 10);
+          const y = Math.floor(Math.random() * 10);
+          const coordinates = Array.from({ length: size }, (_, i) => ({
+            x: direction === 'horizontal' ? x : x + i,
+            y: direction === 'horizontal' ? y + i : y
+          }));
+          if (isValidPlacement(coordinates)) {
+            ships.push({ size, coordinates });
+            placed = true;
+          }
+        }
+      };
+
+      sizes.forEach(size => placeShip(size));
+      return ships;
+    },
+    isAdjacentOccupiedMock(x, y, ships) {
+      const adjacentOffsets = [
+        { dx: -1, dy: -1 }, { dx: -1, dy: 0 }, { dx: -1, dy: 1 },
+        { dx: 0, dy: -1 },                  { dx: 0, dy: 1 },
+        { dx: 1, dy: -1 }, { dx: 1, dy: 0 }, { dx: 1, dy: 1 }
       ];
-    }
+
+      return adjacentOffsets.some(offset => {
+        const adjacentX = x + offset.dx;
+        const adjacentY = y + offset.dy;
+        return (
+          adjacentX >= 0 && adjacentX < 10 &&
+          adjacentY >= 0 && adjacentY < 10 &&
+          ships.some(ship => ship.coordinates.some(c => c.x === adjacentX && c.y === adjacentY))
+        );
+      });
+    },
+    // Other methods remain unchanged
   }
 };
 </script>

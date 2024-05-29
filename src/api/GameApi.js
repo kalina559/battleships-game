@@ -43,6 +43,8 @@
 
 // src/GameApi.js
 
+const previousShots = [];
+
 const api = {
   getOpponentShips: async () => {
     // Mocked opponent ships
@@ -60,11 +62,15 @@ const api = {
     return;
   },
   getAIMove: async () => {
-    // Mock AI move
-    return {
-      x: Math.floor(Math.random() * 10),
-      y: Math.floor(Math.random() * 10)
-    };
+    let move;
+    do {
+      move = {
+        x: Math.floor(Math.random() * 10),
+        y: Math.floor(Math.random() * 10)
+      };
+    } while (previousShots.some(shot => shot.x === move.x && shot.y === move.y));
+    previousShots.push(move);
+    return move;
   }
 };
 
