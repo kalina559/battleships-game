@@ -8,7 +8,8 @@
       </div>
       <div v-for="(row, rowIndex) in rows" :key="rowIndex" class="row">
         <div class="row-label">{{ rowLabels[rowIndex] }}</div>
-        <div v-for="cell in row" :key="cell.id" class="cell">{{ cell.label }}</div>
+        <div v-for="cell in row" :key="cell.id" :class="['cell', isShipCell(rowIndex, cell.id) ? 'ship-cell' : '']">
+        </div>
       </div>
     </div>
   </div>
@@ -16,24 +17,41 @@
 
 <script>
 export default {
-  name: 'Grid',
+  name: 'OpponentGrid',
   props: {
     title: {
       type: String,
       required: true
+    },
+    ships: {
+      type: Array,
+      default: () => []
+    },
+    showShips: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     return {
+      // eslint-disable-next-line
       rows: Array.from({ length: 10 }, (_, rowIndex) =>
-        Array.from({ length: 10 }, (_, cellIndex) => ({
-          id: rowIndex * 10 + cellIndex,
+        Array.from({ length: 10 }, (__, cellIndex) => ({
+          id: cellIndex,
           label: ''
         }))
       ),
       rowLabels: 'ABCDEFGHIJ'.split(''),
-      columnLabels: Array.from({ length: 10 }, (_, i) => i + 1)
+      columnLabels: Array.from({ length: 10 }, (_, i) => i + 1),
     };
+  },
+  methods: {
+    isShipCell(rowIndex, cellIndex) {
+      if (!this.showShips) return false;
+      return this.ships.some(ship =>
+        ship.coordinates.some(coord => coord.x === rowIndex && coord.y === cellIndex)
+      );
+    }
   }
 };
 </script>
@@ -63,6 +81,9 @@ export default {
 .cell {
   background-color: lightblue;
   border: 1px solid #333;
+}
+.ship-cell {
+  background-color: darkblue;
 }
 .column-label, .row-label {
   background-color: #f0f0f0;
