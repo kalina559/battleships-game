@@ -5,9 +5,22 @@
       <Menu v-if="!gameStarted" @startGame="startGame" />
       <div v-if="gameStarted" class="grids">
         <div class="phase">{{ gamePhaseText }}</div>
-        <OpponentGrid title="Opponent's Grid" :ships="opponentShips" :showShips="gamePhase !== 'placingShips'"
-          :shots="playerShots" @cellSelected="handleUserShot" :disabled="currentPlayer !== 'player'" />
-        <UserGrid title="Player's Grid" :ships="playerShips" :shots="opponentShots" @shipPlaced="onShipPlaced" />
+        <OpponentGrid
+          title="Opponent's Grid"
+          :ships="opponentShips"
+          :showShips="gamePhase !== 'placingShips'"
+          :shots="playerShots"
+          @cellSelected="handleUserShot"
+          :disabled="currentPlayer !== 'player'"
+          :feedbackMessage="opponentFeedbackMessage"
+        />
+        <UserGrid
+          title="Player's Grid"
+          :ships="playerShips"
+          :shots="opponentShots"
+          @shipPlaced="onShipPlaced"
+          :feedbackMessage="playerFeedbackMessage"
+        />
       </div>
       <Help />
       <div v-if="winner" class="modal">
@@ -56,7 +69,9 @@ export default {
       currentPlayer: null,
       opponentShots: [],
       playerShots: [],
-      winner: null
+      winner: null,
+      opponentFeedbackMessage: '',
+      playerFeedbackMessage: ''
     };
   },
   computed: {
@@ -87,12 +102,12 @@ export default {
       try {
         this.opponentShips = await GameApi.getOpponentShips();
         this.opponentShipsSet = true;
-        this.checkPhaseTransition(); // Ensure transition is checked here
+        this.checkPhaseTransition();
       } catch (error) {
         // Mock data for now
         this.opponentShips = this.generateMockShips();
         this.opponentShipsSet = true;
-        this.checkPhaseTransition(); // Ensure transition is checked here
+        this.checkPhaseTransition();
       }
     },
     onShipPlaced(ships, placedShipSize) {
@@ -103,11 +118,13 @@ export default {
       if (this.playerShipsSet) {
         GameApi.setUserShips(ships)
           .then(() => {
-            this.checkPhaseTransition(); // Ensure transition is checked here
+            this.checkPhaseTransition();
           })
           .catch(error => {
             console.error('Failed to set user ships:', error);
           });
+      } else {
+        this.checkPhaseTransition();
       }
     },
     checkPhaseTransition() {
@@ -133,6 +150,7 @@ export default {
         ship.coordinates.some(coord => coord.x === move.x && coord.y === move.y)
       );
       this.opponentShots.push({ ...move, hit });
+      this.playerFeedbackMessage = hit ? 'Opponent hit!' : 'Opponent missed!';
       this.checkWinCondition();
       if (!this.winner) {
         this.switchTurn();
@@ -144,6 +162,7 @@ export default {
         ship.coordinates.some(coord => coord.x === x && coord.y === y)
       );
       this.playerShots.push({ x, y, hit });
+      this.opponentFeedbackMessage = hit ? 'You hit!' : 'You missed!';
       this.checkWinCondition();
       if (!this.winner) {
         this.switchTurn();
@@ -194,6 +213,8 @@ export default {
       this.opponentShots = [];
       this.playerShots = [];
       this.winner = null;
+      this.opponentFeedbackMessage = '';
+      this.playerFeedbackMessage = '';
     },
     generateMockShips() {
       // Generate mock ship locations for the opponent
@@ -215,26 +236,22 @@ export default {
   flex-direction: column;
   align-items: center;
 }
-
 .grids {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .phase {
   margin-bottom: 20px;
   font-size: 18px;
   font-weight: bold;
 }
-
 .ship-list {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
 }
-
 .ship {
   margin: 10px;
   padding: 10px;
@@ -242,7 +259,6 @@ export default {
   border: 1px solid #333;
   cursor: grab;
 }
-
 .modal {
   position: fixed;
   top: 50%;
@@ -254,7 +270,6 @@ export default {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   z-index: 1000;
 }
-
 .modal-content {
   text-align: center;
 }

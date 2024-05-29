@@ -1,6 +1,7 @@
 <template>
     <div class="grid">
       <h2>{{ title }}</h2>
+      <div class="feedback" v-if="feedbackMessage">{{ feedbackMessage }}</div>
       <div class="grid-container" @keydown="handleKeydown" tabindex="0">
         <div class="row">
           <div class="corner"></div>
@@ -9,6 +10,7 @@
         <div v-for="(row, rowIndex) in rows" :key="rowIndex" class="row">
           <div class="row-label">{{ rowLabels[rowIndex] }}</div>
           <div v-for="cell in row" :key="cell.id" :class="['cell', getCellClass(rowIndex, cell.id)]">
+            <span v-if="isMissCell(rowIndex, cell.id)" class="miss-marker">X</span>
           </div>
         </div>
       </div>
@@ -30,6 +32,10 @@
       shots: {
         type: Array,
         default: () => []
+      },
+      feedbackMessage: {
+        type: String,
+        default: ''
       }
     },
     data() {
@@ -148,6 +154,10 @@
       isHitCell(rowIndex, cellIndex) {
         return this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex && shot.hit);
       },
+      isMissCell(rowIndex, cellIndex) {
+        const shot = this.shots.find(shot => shot.x === rowIndex && shot.y === cellIndex);
+        return shot && !shot.hit;
+      },
       isShipCell(rowIndex, cellIndex) {
         return this.placedShips.some(ship =>
           ship.coordinates.some(coord => coord.x === rowIndex && coord.y === cellIndex)
@@ -165,6 +175,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+  .feedback {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
   }
   .grid-container {
     display: grid;
@@ -197,6 +212,12 @@
   }
   .miss-cell {
     background-color: white;
+    position: relative;
+  }
+  .miss-marker {
+    color: black;
+    font-size: 24px;
+    position: absolute;
   }
   .ship-cell {
     background-color: darkblue;
