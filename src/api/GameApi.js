@@ -8,7 +8,21 @@ const apiClient = axios.create({
   }
 });
 
+let sessionId = null;
+
+function setSessionId(id) {
+  sessionId = id;
+}
+
+apiClient.interceptors.request.use(config => {
+  if (sessionId) {
+    config.headers['X-Session-Id'] = sessionId;
+  }
+  return config;
+});
+
 export default {
+  setSessionId,
   async getOpponentShips() {
     const response = await apiClient.get('/ShipLocations/opponent');
     return response.data;
