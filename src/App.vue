@@ -8,18 +8,18 @@
         <OpponentGrid
           title="Opponent's Grid"
           :ships="opponentShips"
-          :showShips="gamePhase !== 'placingShips'"
+          :showShips=false
           :shots="playerShots"
           @cellSelected="handleUserShot"
           :disabled="currentPlayer !== 'player'"
-          :feedbackMessage="opponentFeedbackMessage"
+          :feedbackMessage="opponentGridFeedbackMessage"
         />
         <UserGrid
           title="Player's Grid"
           :ships="playerShips"
           :shots="opponentShots"
           @shipPlaced="onShipPlaced"
-          :feedbackMessage="playerFeedbackMessage"
+          :feedbackMessage="playerGridFeedbackMessage"
         />
       </div>
       <Help />
@@ -59,19 +59,12 @@ export default {
       opponentShips: [],
       playerShipsSet: false,
       opponentShipsSet: false,
-      availableShips: [
-        { size: 5 },
-        { size: 4 },
-        { size: 3 },
-        { size: 2 },
-        { size: 1 }
-      ],
       currentPlayer: null,
       opponentShots: [],
       playerShots: [],
       winner: null,
-      opponentFeedbackMessage: '',
-      playerFeedbackMessage: ''
+      opponentGridFeedbackMessage: '',
+      playerGridFeedbackMessage: '',
     };
   },
   computed: {
@@ -94,135 +87,123 @@ export default {
     }
   },
   methods: {
-    async startGame(aiType) {
-      this.selectedAi = aiType;
-      this.gameStarted = true;
-
-      // Reset previous shots for a new game
-      this.opponentShots = [];
-      this.playerShots = [];
-
-      // Fetch opponent's ships
-      try {
-        this.opponentShips = await GameApi.getOpponentShips();
-        this.opponentShipsSet = true;
-        this.checkPhaseTransition();
-      } catch (error) {
-        console.error('Failed to fetch opponent ships:', error);
-      }
-    },
-    onShipPlaced(ships, placedShipSize) {
-      this.playerShips = ships;
-      this.availableShips = this.availableShips.filter(ship => ship.size !== placedShipSize);
-      this.playerShipsSet = this.availableShips.length === 0;
-
-      if (this.playerShipsSet) {
-        GameApi.setUserShips(ships)
-          .then(() => {
-            this.checkPhaseTransition();
-          })
-          .catch(error => {
-            console.error('Failed to set user ships:', error);
-          });
-      } else {
-        this.checkPhaseTransition();
-      }
-    },
-    checkPhaseTransition() {
-      if (this.playerShipsSet && this.opponentShipsSet) {
-        this.determineStartingPlayer();
-      } else if (this.playerShipsSet) {
-        this.gamePhase = 'waitingOpponent';
-      } else if (this.opponentShipsSet) {
-        this.gamePhase = 'placingShips';
-      }
-    },
-    determineStartingPlayer() {
-      const randomStart = Math.random() < 0.5;
-      this.currentPlayer = randomStart ? 'player' : 'opponent';
-      this.gamePhase = randomStart ? 'playerTurn' : 'opponentTurn';
-      if (!randomStart) {
-        this.opponentMove();
-      }
-    },
-    async opponentMove() {
-      try {
-        const move = await GameApi.opponentShot();
-        const hit = move.isHit;
-        this.opponentShots.push({ x: move.position.x, y: move.position.y, hit });
-        this.playerFeedbackMessage = hit ? 'Opponent hit!' : 'Opponent missed!';
-        this.checkWinCondition();
-        if (!this.winner) {
-          this.switchTurn();
-        }
-      } catch (error) {
-        console.error('Failed to get opponent move:', error);
-      }
-    },
-    async handleUserShot(x, y) {
-      if (this.currentPlayer !== 'player') return;
-      try {
-        const move = await GameApi.userShot({ x, y });
-        const hit = move.isHit;
-        this.playerShots.push({ x, y, hit });
-        this.opponentFeedbackMessage = hit ? 'You hit!' : 'You missed!';
-        this.checkWinCondition();
-        if (!this.winner) {
-          this.switchTurn();
-        }
-      } catch (error) {
-        console.error('Failed to handle user shot:', error);
-      }
-    },
-    switchTurn() {
-      this.currentPlayer = this.currentPlayer === 'player' ? 'opponent' : 'player';
-      this.gamePhase = this.currentPlayer === 'player' ? 'playerTurn' : 'opponentTurn';
-      if (this.currentPlayer === 'opponent') {
-        setTimeout(() => {
-          this.opponentMove();
-        }, 1000);
-      }
-    },
-    checkWinCondition() {
-      const allPlayerShipsSunk = this.playerShips.every(ship =>
-        ship.coordinates.every(coord =>
-          this.opponentShots.some(shot => shot.x === coord.x && shot.y === coord.y)
-        )
-      );
-      const allOpponentShipsSunk = this.opponentShips.every(ship =>
-        ship.coordinates.every(coord =>
-          this.playerShots.some(shot => shot.x === coord.x && shot.y === coord.y)
-        )
-      );
-      if (allPlayerShipsSunk) {
-        this.winner = 'opponent';
-      } else if (allOpponentShipsSunk) {
-        this.winner = 'player';
-      }
-    },
-    resetGame() {
-      this.gameStarted = false;
-      this.selectedAi = null;
-      this.gamePhase = 'placingShips';
-      this.playerShips = [];
-      this.opponentShips = [];
-      this.playerShipsSet = false;
-      this.opponentShipsSet = false;
-      this.availableShips = [
-        { size: 5 },
-        { size: 4 },
-        { size: 3 },
-        { size: 2 },
-        { size: 1 }
-      ];
-      this.currentPlayer = null;
-      this.opponentShots = [];
-      this.playerShots = [];
-      this.winner = null;
-      this.opponentFeedbackMessage = '';
-      this.playerFeedbackMessage = '';
+  async startGame(aiType) {
+    this.selectedAi = aiType;
+    this.gameStarted = true;
+    try {
+      await GameApi.clearGameState(); // Clear game state when starting the game
+      this.opponentShips = await GameApi.getOpponentShips();
+      this.opponentShipsSet = true;
+      this.checkPhaseTransition();
+    } catch (error) {
+      console.error('Failed to get opponent ships:', error);
     }
+  },
+  async onShipPlaced(ships) {
+    this.playerShips = ships;
+    this.playerShipsSet = this.playerShips.length === 5;
+
+    if (this.playerShipsSet) {
+      try {
+        await GameApi.setUserShips(ships);
+        this.checkPhaseTransition();
+      } catch (error) {
+        console.error('Failed to set user ships:', error);
+      }
+    } else {
+      this.checkPhaseTransition();
+    }
+  },
+  checkPhaseTransition() {
+    if (this.playerShipsSet && this.opponentShipsSet) {
+      this.determineStartingPlayer();
+    } else if (this.playerShipsSet) {
+      this.gamePhase = 'waitingOpponent';
+    } else if (this.opponentShipsSet) {
+      this.gamePhase = 'placingShips';
+    }
+  },
+  determineStartingPlayer() {
+    const randomStart = Math.random() < 0.5;
+    this.currentPlayer = randomStart ? 'player' : 'opponent';
+    this.gamePhase = randomStart ? 'playerTurn' : 'opponentTurn';
+    if (!randomStart) {
+      this.opponentMove();
+    }
+  },
+  async opponentMove() {
+    if (this.currentPlayer !== 'opponent') return;
+    try {
+      const move = await GameApi.opponentShot();
+      await this.updateGameState();
+      this.playerGridFeedbackMessage = move.isHit ? (move.isSunk ? 'Opponent sunk your ship!' : 'Opponent hit!') : 'Opponent missed!';
+    } catch (error) {
+      console.error('Failed to get opponent move:', error);
+    }
+  },
+  async handleUserShot(x, y) {
+    if (this.currentPlayer !== 'player') return;
+    try {
+      const move = await GameApi.userShot({ x, y });
+      await this.updateGameState();
+      this.opponentGridFeedbackMessage = move.isHit ? (move.isSunk ? 'You sunk a ship!' : 'You hit!') : 'You missed!';
+    } catch (error) {
+      console.error('Failed to handle user shot:', error);
+    }
+  },
+  async updateGameState() {
+    try {
+      const gameState = await GameApi.getGameState();
+
+      // Update arrays reactively
+      this.playerShips.splice(0, this.playerShips.length, ...gameState.userShips);
+      this.opponentShips.splice(0, this.opponentShips.length, ...gameState.opponentShips);
+      this.playerShots.splice(0, this.playerShots.length, ...gameState.playerShots);
+      this.opponentShots.splice(0, this.opponentShots.length, ...gameState.opponentShots);
+
+      this.checkWinCondition(gameState);
+      this.switchTurn();
+    } catch (error) {
+      console.error('Failed to update game state:', error);
+    }
+  },
+  checkWinCondition(gameState) {
+    const allPlayerShipsSunk = gameState.userShips.every(ship => ship.isSunk);
+    const allOpponentShipsSunk = gameState.opponentShips.every(ship => ship.isSunk);
+    if (allPlayerShipsSunk) {
+      this.winner = 'opponent';
+    } else if (allOpponentShipsSunk) {
+      this.winner = 'player';
+    }
+  },
+  switchTurn() {
+    this.currentPlayer = this.currentPlayer === 'player' ? 'opponent' : 'player';
+    this.gamePhase = this.currentPlayer === 'player' ? 'playerTurn' : 'opponentTurn';
+    if (this.currentPlayer === 'opponent') {
+      setTimeout(() => {
+        this.opponentMove();
+      }, 1000);
+    }
+  },
+  randomCoordinate() {
+    return Math.floor(Math.random() * 10);
+  },
+  resetGame() {
+    this.gameStarted = false;
+    this.selectedAi = null;
+    this.gamePhase = 'placingShips';
+    this.playerShips = [];
+    this.opponentShips = [];
+    this.playerShipsSet = false;
+    this.opponentShipsSet = false;
+    this.currentPlayer = null;
+    this.opponentShots = [];
+    this.playerShots = [];
+    this.winner = null;
+    this.opponentGridFeedbackMessage = '';
+    this.playerGridFeedbackMessage = '';
   }
+}
 };
 </script>
 
@@ -241,19 +222,6 @@ export default {
   margin-bottom: 20px;
   font-size: 18px;
   font-weight: bold;
-}
-.ship-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-}
-.ship {
-  margin: 10px;
-  padding: 10px;
-  background-color: lightgray;
-  border: 1px solid #333;
-  cursor: grab;
 }
 .modal {
   position: fixed;

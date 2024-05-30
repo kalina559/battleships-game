@@ -17,11 +17,18 @@ export default {
     await apiClient.post('/ShipLocations/user', shipData);
   },
   async userShot(position) {
-    const response = await apiClient.post('/shot/user', position);
+    const response = await apiClient.post('shot/user', position);
     return response.data;
   },
   async opponentShot() {
-    const response = await apiClient.get('/shot/opponent');
+    const response = await apiClient.post('shot/opponent');
     return response.data;
+  },
+  async getGameState() {
+    const response = await apiClient.get('gamestate/get');
+    return response.data;
+  },
+  async clearGameState() {
+    await apiClient.get('gamestate/clear');
   }
 };

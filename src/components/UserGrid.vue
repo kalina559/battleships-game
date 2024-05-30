@@ -1,43 +1,39 @@
 <template>
-    <div class="grid">
-      <h2>{{ title }}</h2>
-      <div class="feedback" v-if="feedbackMessage">{{ feedbackMessage }}</div>
-      <div 
-        class="grid-container" 
-        @keydown="handleKeydown" 
-        tabindex="0" 
-        ref="gridContainer">
-        <div class="row">
-          <div class="corner"></div>
-          <div v-for="label in columnLabels" :key="label" class="column-label">{{ label }}</div>
-        </div>
-        <div v-for="(row, rowIndex) in rows" :key="rowIndex" class="row">
-          <div class="row-label">{{ rowLabels[rowIndex] }}</div>
-          <div v-for="cell in row" :key="cell.id" :class="['cell', getCellClass(rowIndex, cell.id)]">
-            <span v-if="isMissCell(rowIndex, cell.id)" class="miss-marker">X</span>
-          </div>
-        </div>
+  <div class="grid">
+    <h2>{{ title }}</h2>
+    <div class="feedback" v-if="feedbackMessage">{{ feedbackMessage }}</div>
+    <div class="grid-container" @keydown="handleKeydown" tabindex="0" ref="gridContainer">
+      <div class="row">
+        <div class="corner"></div>
+        <div v-for="label in columnLabels" :key="label" class="column-label">{{ label }}</div>
       </div>
-      <div class="controls">
-        <div class="control-row">
-          <button @click="handleKeydown({ key: 'ArrowUp' })">↑</button>
-        </div>
-        <div class="control-row">
-          <button @click="handleKeydown({ key: 'ArrowLeft' })">←</button>
-          <button @click="handleKeydown({ key: 'ArrowDown' })">↓</button>
-          <button @click="handleKeydown({ key: 'ArrowRight' })">→</button>
-        </div>
-        <div class="control-row">
-          <button @click="handleKeydown({ key: 'r' })">Rotate</button>
-          <button @click="handleKeydown({ key: 'Enter' })">Deploy</button>
+      <div v-for="(row, rowIndex) in rows" :key="rowIndex" class="row">
+        <div class="row-label">{{ rowLabels[rowIndex] }}</div>
+        <div v-for="cell in row" :key="cell.id" :class="['cell', getCellClass(rowIndex, cell.id)]">
+          <span v-if="isMissCell(rowIndex, cell.id)" class="miss-marker">X</span>
         </div>
       </div>
     </div>
-  </template>
-  
-  
-  <script>
-  export default {
+    <div class="controls">
+      <div class="control-row">
+        <button @click="handleKeydown({ key: 'ArrowUp' })">↑</button>
+      </div>
+      <div class="control-row">
+        <button @click="handleKeydown({ key: 'ArrowLeft' })">←</button>
+        <button @click="handleKeydown({ key: 'ArrowDown' })">↓</button>
+        <button @click="handleKeydown({ key: 'ArrowRight' })">→</button>
+      </div>
+      <div class="control-row">
+        <button @click="handleKeydown({ key: 'r' })">Rotate</button>
+        <button @click="handleKeydown({ key: 'Enter' })">Deploy</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<script>
+export default {
   name: 'UserGrid',
   props: {
     title: {
@@ -191,11 +187,11 @@
       return this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex);
     },
     isHitCell(rowIndex, cellIndex) {
-      return this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex && shot.hit);
+      return this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex && shot.isHit);
     },
     isMissCell(rowIndex, cellIndex) {
       const shot = this.shots.find(shot => shot.x === rowIndex && shot.y === cellIndex);
-      return shot && !shot.hit;
+      return shot && !shot.isHit;
     },
     isShipCell(rowIndex, cellIndex) {
       return this.placedShips.some(ship =>
@@ -216,73 +212,93 @@
   flex-direction: column;
   align-items: center;
 }
+
 .feedback {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
 }
+
 .grid-container {
   display: grid;
   grid-template-columns: 30px repeat(10, 30px);
   grid-template-rows: 30px repeat(10, 30px);
   gap: 2px;
 }
+
 .grid-container:focus {
   outline: none;
 }
+
 .row {
   display: contents;
 }
-.cell, .column-label, .row-label {
+
+.cell,
+.column-label,
+.row-label {
   width: 30px;
   height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .cell {
   background-color: lightblue;
   border: 1px solid #333;
 }
+
 .valid-ship {
   background-color: lightgreen;
 }
+
 .invalid-ship {
   background-color: lightcoral;
 }
+
 .hit-cell {
   background-color: red;
 }
+
 .miss-cell {
   background-color: white;
   position: relative;
 }
+
 .miss-marker {
   color: black;
   font-size: 24px;
   position: absolute;
 }
+
 .ship-cell {
   background-color: darkblue;
 }
-.column-label, .row-label {
+
+.column-label,
+.row-label {
   background-color: #f0f0f0;
   font-weight: bold;
 }
+
 .corner {
   background-color: #f0f0f0;
 }
+
 .controls {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
 }
+
 .control-row {
   display: flex;
   justify-content: center;
   margin: 5px 0;
 }
+
 .controls button {
   margin: 0 5px;
   padding: 10px 20px;

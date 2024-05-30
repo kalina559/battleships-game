@@ -70,13 +70,19 @@ export default {
     getCellClass(rowIndex, cellIndex) {
       const shot = this.shots.find(shot => shot.x === rowIndex && shot.y === cellIndex);
       if (shot) {
-        return shot.hit ? 'hit-cell' : 'miss-cell';
+        return shot.isHit ? 'hit-cell' : 'miss-cell';
+      }
+      if (this.isShipCell(rowIndex, cellIndex)) {
+        return this.showShips ? 'ship-cell' : '';
       }
       return '';
     },
+    isHitCell(rowIndex, cellIndex) {
+      return this.shots.some(shot => shot.x === rowIndex && shot.y === cellIndex && shot.isHit);
+    },
     isMissCell(rowIndex, cellIndex) {
       const shot = this.shots.find(shot => shot.x === rowIndex && shot.y === cellIndex);
-      return shot && !shot.hit;
+      return shot && !shot.isHit;
     },
     selectCell(rowIndex, cellIndex) {
       if (this.disabled) return;
@@ -93,51 +99,65 @@ export default {
   flex-direction: column;
   align-items: center;
 }
+
 .feedback {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
 }
+
 .grid-container {
   display: grid;
   grid-template-columns: 30px repeat(10, 30px);
   grid-template-rows: 30px repeat(10, 30px);
   gap: 2px;
 }
+
 .row {
   display: contents;
 }
-.cell, .column-label, .row-label {
+
+.cell,
+.column-label,
+.row-label {
   width: 30px;
   height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .cell {
   background-color: lightblue;
   border: 1px solid #333;
   cursor: pointer;
 }
+
 .hit-cell {
   background-color: red;
 }
+
 .miss-cell {
   background-color: white;
   position: relative;
 }
+
 .miss-marker {
   color: black;
   font-size: 24px;
   position: absolute;
 }
+
 .ship-cell {
   background-color: darkblue;
 }
-.column-label, .row-label {
+
+.column-label,
+.row-label {
   background-color: #f0f0f0;
   font-weight: bold;
 }
+
 .corner {
   background-color: #f0f0f0;
 }
