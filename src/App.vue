@@ -41,9 +41,6 @@ import Help from './components/Help.vue';
 import Menu from './components/Menu.vue';
 import GameApi from './api/GameApi';
 
-//TODO remove once we start using backend for AI moves
-const previousShots = [];
-
 export default {
   name: 'App',
   components: {
@@ -102,7 +99,8 @@ export default {
       this.gameStarted = true;
 
       // Reset previous shots for a new game
-      previousShots.length = 0;
+      this.opponentShots = [];
+      this.playerShots = [];
 
       // Fetch opponent's ships
       try {
@@ -110,10 +108,7 @@ export default {
         this.opponentShipsSet = true;
         this.checkPhaseTransition();
       } catch (error) {
-        // Mock data for now
-        this.opponentShips = this.generateMockShips();
-        this.opponentShipsSet = true;
-        this.checkPhaseTransition();
+        console.error('Failed to fetch opponent ships:', error);
       }
     },
     onShipPlaced(ships, placedShipSize) {
@@ -151,27 +146,32 @@ export default {
       }
     },
     async opponentMove() {
-      const move = await GameApi.getAIMove();
-      const hit = this.playerShips.some(ship =>
-        ship.coordinates.some(coord => coord.x === move.x && coord.y === move.y)
-      );
-      this.opponentShots.push({ ...move, hit });
-      this.playerFeedbackMessage = hit ? 'Opponent hit!' : 'Opponent missed!';
-      this.checkWinCondition();
-      if (!this.winner) {
-        this.switchTurn();
+      try {
+        const move = await GameApi.opponentShot();
+        const hit = move.isHit;
+        this.opponentShots.push({ x: move.position.x, y: move.position.y, hit });
+        this.playerFeedbackMessage = hit ? 'Opponent hit!' : 'Opponent missed!';
+        this.checkWinCondition();
+        if (!this.winner) {
+          this.switchTurn();
+        }
+      } catch (error) {
+        console.error('Failed to get opponent move:', error);
       }
     },
-    handleUserShot(x, y) {
+    async handleUserShot(x, y) {
       if (this.currentPlayer !== 'player') return;
-      const hit = this.opponentShips.some(ship =>
-        ship.coordinates.some(coord => coord.x === x && coord.y === y)
-      );
-      this.playerShots.push({ x, y, hit });
-      this.opponentFeedbackMessage = hit ? 'You hit!' : 'You missed!';
-      this.checkWinCondition();
-      if (!this.winner) {
-        this.switchTurn();
+      try {
+        const move = await GameApi.userShot({ x, y });
+        const hit = move.isHit;
+        this.playerShots.push({ x, y, hit });
+        this.opponentFeedbackMessage = hit ? 'You hit!' : 'You missed!';
+        this.checkWinCondition();
+        if (!this.winner) {
+          this.switchTurn();
+        }
+      } catch (error) {
+        console.error('Failed to handle user shot:', error);
       }
     },
     switchTurn() {
@@ -221,16 +221,6 @@ export default {
       this.winner = null;
       this.opponentFeedbackMessage = '';
       this.playerFeedbackMessage = '';
-      previousShots.length = 0; // Reset previous shots
-    },
-    generateMockShips() {
-      return [
-        { size: 5, coordinates: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 0, y: 3 }, { x: 0, y: 4 }] },
-        { size: 4, coordinates: [{ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 2, y: 5 }] },
-        { size: 3, coordinates: [{ x: 5, y: 5 }, { x: 5, y: 6 }, { x: 5, y: 7 }] },
-        { size: 2, coordinates: [{ x: 7, y: 8 }, { x: 7, y: 9 }] },
-        { size: 1, coordinates: [{ x: 9, y: 0 }] }
-      ];
     }
   }
 };
