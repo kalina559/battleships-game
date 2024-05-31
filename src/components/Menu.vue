@@ -1,47 +1,58 @@
 <template>
-    <div class="menu">
-      <h2>Select AI Type</h2>
-      <select v-model="selectedAi">
+  <div class="menu">
+    <h2>Select AI Type</h2>
+    <div v-if="aiTypes.length">
+      <select id="ai-select" v-model="selectedAiType">
         <option disabled value="">Please select one</option>
-        <option>Random</option>
-        <option>Minimax</option>
-        <option>Reinforcement Learning</option>
+        <option v-for="aiType in aiTypes" :key="aiType.id" :value="aiType.id">{{ aiType.name }}</option>
       </select>
-      <button @click="startGame">Start Game</button>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'Menu',
-    data() {
-      return {
-        selectedAi: ''
-      };
-    },
-    methods: {
-      startGame() {
-        if (this.selectedAi) {
-          this.$emit('startGame', this.selectedAi);
+    <button @click="startGame">Start Game</button>
+  </div>
+</template>
+
+
+<script>
+import GameApi from '../api/GameApi';
+
+export default {
+  name: 'Menu',
+  data() {
+    return {
+      aiTypes: [],
+      selectedAiType: ""
+    };
+  },
+  async created() {
+    try {
+      this.aiTypes = await GameApi.getAiTypes();
+      console.log(this.aiTypes)
+    } catch (error) {
+      console.error('Failed to load AI types:', error);
+    }
+  },
+  methods: {
+    async startGame() {
+      try {
+        if (this.selectedAiType) {
+          await GameApi.selectAiType(this.selectedAiType);
+          this.$emit('startGame', this.selectedAiType);
         } else {
           alert('Please select an AI type.');
         }
+
+      } catch (error) {
+        console.error('Failed to select AI type:', error);
       }
     }
-  };
-  </script>
-  
-  <style scoped>
-  .menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
   }
-  select {
-    margin: 10px 0;
-  }
-  button {
-    padding: 10px 20px;
-  }
-  </style>
-  
+};
+</script>
+
+<style scoped>
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+</style>

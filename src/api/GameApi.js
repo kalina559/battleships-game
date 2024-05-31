@@ -23,6 +23,13 @@ apiClient.interceptors.request.use(config => {
 
 export default {
   setSessionId,
+  async getAiTypes() {
+    const response = await apiClient.get('/AiType/list');
+    return response.data;
+  },
+  async selectAiType(type) {
+    await apiClient.post('/AiType/select', type);
+  },
   async getOpponentShips() {
     const response = await apiClient.get('/ShipLocations/opponent');
     return response.data;
