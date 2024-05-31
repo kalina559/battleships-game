@@ -3,7 +3,7 @@
     <h2>Select AI Type</h2>
     <div v-if="aiTypes.length">
       <select id="ai-select" v-model="selectedAiType">
-        <option disabled value="">Please select one</option>
+        <option disabled value=-1>Please select one</option>
         <option v-for="aiType in aiTypes" :key="aiType.id" :value="aiType.id">{{ aiType.name }}</option>
       </select>
     </div>
@@ -20,7 +20,7 @@ export default {
   data() {
     return {
       aiTypes: [],
-      selectedAiType: ""
+      selectedAiType: -1
     };
   },
   async created() {
@@ -34,7 +34,7 @@ export default {
   methods: {
     async startGame() {
       try {
-        if (this.selectedAiType) {
+        if (this.selectedAiType != -1) {
           await GameApi.selectAiType(this.selectedAiType);
           this.$emit('startGame', this.selectedAiType);
         } else {
