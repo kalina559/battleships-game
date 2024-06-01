@@ -100,7 +100,6 @@ export default {
       this.selectedAi = aiType;
       this.gameStarted = true;
       try {
-        await GameApi.clearGameState(); // Clear game state when starting the game
         this.opponentShips = await GameApi.getOpponentShips();
         this.opponentShipsSet = true;
         this.checkPhaseTransition();

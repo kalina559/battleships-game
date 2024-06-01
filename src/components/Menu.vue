@@ -35,6 +35,7 @@ export default {
     async startGame() {
       try {
         if (this.selectedAiType != -1) {
+          await GameApi.clearGameState();
           await GameApi.selectAiType(this.selectedAiType);
           this.$emit('startGame', this.selectedAiType);
         } else {
@@ -45,7 +46,7 @@ export default {
         console.error('Failed to select AI type:', error);
       }
     }
-  }
+  },
 };
 </script>
 
