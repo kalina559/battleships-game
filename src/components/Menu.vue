@@ -28,7 +28,7 @@ export default {
       aiTypes: [],
       ruleTypes: [],
       selectedAiType: -1,
-      shipsCanTouch: 0
+      shipsCanTouch: false
     };
   },
   async created() {
@@ -46,14 +46,14 @@ export default {
           await GameApi.clearGameState();
           await GameApi.selectAiType(this.selectedAiType);
           await GameApi.updateRules(this.shipsCanTouch);
-          
+
           this.$emit('startGame', this.selectedAiType, this.shipsCanTouch);
         } else {
           alert(this.$t('selectAiTypeWarning'));
         }
 
       } catch (error) {
-        console.error('Failed to select AI type:', error);
+        console.error('Failed to start the game', error);
       }
     }
   },
