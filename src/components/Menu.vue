@@ -1,13 +1,13 @@
 <template>
   <div class="menu">
-    <h2>Select AI Type</h2>
+    <h2>{{ $t('selectAiTypeHeader') }}</h2>
     <div v-if="aiTypes.length">
       <select id="ai-select" v-model="selectedAiType">
-        <option disabled value=-1>Please select one</option>
+        <option disabled value=-1>{{ $t('selectAiTypeDefaultOption') }}</option>
         <option v-for="aiType in aiTypes" :key="aiType.id" :value="aiType.id">{{ aiType.name }}</option>
       </select>
     </div>
-    <button @click="startGame">Start Game</button>
+    <button @click="startGame">{{ $t('startGame') }}</button>
   </div>
 </template>
 
@@ -39,7 +39,7 @@ export default {
           await GameApi.selectAiType(this.selectedAiType);
           this.$emit('startGame', this.selectedAiType);
         } else {
-          alert('Please select an AI type.');
+          alert(this.$t('selectAiTypeWarning'));
         }
 
       } catch (error) {

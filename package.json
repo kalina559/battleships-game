@@ -10,8 +10,11 @@
     "deploy": "vue-cli-service build && gh-pages -d dist"
   },
   "dependencies": {
+    "axios": "^1.7.2",
     "core-js": "^3.8.3",
-    "vue": "^3.2.13"
+    "flag-icons": "^7.2.3",
+    "vue": "^3.2.13",
+    "vue-i18n": "^9.13.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
@@ -35,7 +38,9 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {"vue/multi-word-component-names": "off"}
+    "rules": {
+      "vue/multi-word-component-names": "off"
+    }
   },
   "browserslist": [
     "> 1%",

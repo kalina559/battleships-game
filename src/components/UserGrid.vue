@@ -1,6 +1,6 @@
 <template>
   <div class="grid">
-    <h2>{{ title }}</h2>
+    <h2>{{ $t('playersGrid') }}</h2>
     <div class="feedback" v-if="feedbackMessage">{{ feedbackMessage }}</div>
     <div class="grid-container" @keydown="handleKeydown" tabindex="0" ref="gridContainer">
       <div class="row">
@@ -24,8 +24,8 @@
         <button @click="handleKeydown({ key: 'ArrowRight' })">→</button>
       </div>
       <div class="control-row">
-        <button @click="handleKeydown({ key: 'r' })">Rotate</button>
-        <button @click="handleKeydown({ key: 'Enter' })">Deploy</button>
+        <button @click="handleKeydown({ key: 'r' })">{{ $t('rotateButton') }}</button>
+        <button @click="handleKeydown({ key: 'Enter' })">{{ $t('deployButton') }}</button>
       </div>
     </div>
   </div>
@@ -36,10 +36,6 @@
 export default {
   name: 'UserGrid',
   props: {
-    title: {
-      type: String,
-      required: true
-    },
     ships: {
       type: Array,
       default: () => []

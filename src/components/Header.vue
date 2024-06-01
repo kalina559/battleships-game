@@ -1,6 +1,6 @@
 <template>
   <header>
-    <h1>Battleships</h1>
+    <h1>{{ $t('headerTitle') }}</h1>
   </header>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="grid">
-    <h2>{{ title }}</h2>
+    <h2>{{ $t('opponentsGrid') }}</h2>
     <div class="feedback" v-if="feedbackMessage">{{ feedbackMessage }}</div>
     <div class="grid-container">
       <div class="row">
@@ -22,10 +22,6 @@
 export default {
   name: 'OpponentGrid',
   props: {
-    title: {
-      type: String,
-      required: true
-    },
     ships: {
       type: Array,
       default: () => []

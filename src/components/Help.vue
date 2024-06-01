@@ -1,7 +1,7 @@
 <template>
     <div class="help">
-      <h2>Help</h2>
-      <p>Use arrows to place your ships. You can rotate them using R key. Click on the cell you want to shoot at.</p>
+      <h2>{{ $t('helpHeader') }}</h2>
+      <p>{{ $t('helpMessage') }}</p>
     </div>
   </template>
   

@@ -1,0 +1,38 @@
+{
+    "polishLanguage": "Polski",
+    "englishLanguage": "Angielski",
+
+    "headerTitle": "Statki",
+
+    "selectAiTypeHeader": "Wybierz rodzaj AI",
+    "selectAiTypeDefaultOption": "Wybierz jakiś rodzaj",
+    "startGame": "Rozpocznij grę",
+    "selectAiTypeWarning": "Musisz wybrać jakiś rodzaj AI, aby kontynuować",
+
+    "helpHeader": "Pomoc",
+    "helpMessage": "Użyj strzałek aby ustawić swoje statki. Może je obracać używając przycisku 'Obróć'. Kliknij na planszę przeciwnika, aby wybrać gdzie chcesz oddać strzał.",
+
+    "rotateButton": "Obróć",
+    "deployButton": "Ustaw",
+
+    "waitingForUserToDeployShips": "Czekanie na rozmieszczenie statków przez użytkownika",
+    "waitingForOpponentToDeployShips": "Czekanie na rozmieszczenie statków przez przeciwnika",
+    "yourTurn": "Twoja tura",
+    "opponentsTurn": "Tura przeciwnika",
+
+    "feedbackOpponentMiss": "Przeciwnik spudłował!",
+    "feedbackOpponentHit": "Przeciwnik trafił!",
+    "feedbackOpponentSink": "Przeciwnik zatopił Twój statek!",
+
+    "feedbackPlayerMiss": "Spudłowałeś!",
+    "feedbackPlayerHit": "Trafiłeś!",
+    "feedbackPlayerSink": "Zatopiłeś statek!",
+
+    "userWon": "Użytkownik wygrał!",
+    "aiWon": "AI wygrało!",
+    "playAgain": "Zagraj ponownie",
+    
+    "playersGrid": "Plansza gracza",
+    "opponentsGrid": "Plansza przeciwnika"
+  }
+  

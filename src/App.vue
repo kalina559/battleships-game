@@ -2,20 +2,23 @@
   <div id="app">
     <Header />
     <div class="content">
+      <div class="language-switcher">
+        <span @click="changeLanguage('en')" class="fi fi-gb" :title="$t('englishLanguage')"></span>
+        <span @click="changeLanguage('pl')" class="fi fi-pl" :title="$t('polishLanguage')"></span>
+      </div>
       <Menu v-if="!gameStarted" @startGame="startGame" />
       <div v-if="gameStarted" class="grids">
-        <div class="phase">{{ gamePhaseText }}</div>
-        <OpponentGrid title="Opponent's Grid" :ships="opponentShips" :showShips=false :shots="playerShots"
-          @cellSelected="handleUserShot" :disabled="currentPlayer !== 'player'"
-          :feedbackMessage="opponentGridFeedbackMessage" />
-        <UserGrid title="Player's Grid" :ships="playerShips" :shots="opponentShots" @shipPlaced="onShipPlaced"
-          :feedbackMessage="playerGridFeedbackMessage" />
+        <div class="phase">{{ $t(gamePhaseText) }}</div>
+        <OpponentGrid :ships="opponentShips" :showShips=false :shots="playerShots" @cellSelected="handleUserShot"
+          :disabled="currentPlayer !== 'player'" :feedbackMessage=$t(opponentGridFeedbackMessage) />
+        <UserGrid :ships="playerShips" :shots="opponentShots" @shipPlaced="onShipPlaced"
+          :feedbackMessage=$t(playerGridFeedbackMessage) />
       </div>
       <Help />
       <div v-if="winner" class="modal">
         <div class="modal-content">
-          <p>{{ winnerMessage }}</p>
-          <button @click="resetGame">Play Again</button>
+          <p>{{ $t(winnerMessage) }}</p>
+          <button @click="resetGame">{{ $t('playAgain') }}</button>
         </div>
       </div>
     </div>
@@ -62,22 +65,25 @@ export default {
     gamePhaseText() {
       switch (this.gamePhase) {
         case 'placingShips':
-          return 'Waiting for user to deploy ships';
+          return 'waitingForUserToDeployShips';
         case 'waitingOpponent':
-          return 'Waiting for opponent to deploy ships';
+          return 'waitingForOpponentToDeployShips';
         case 'playerTurn':
-          return 'Your turn';
+          return 'yourTurn';
         case 'opponentTurn':
-          return 'Opponent\'s turn';
+          return 'opponentsTurn';
         default:
           return '';
       }
     },
     winnerMessage() {
-      return this.winner === 'player' ? 'User won!' : 'AI won!';
+      return this.winner === 'player' ? 'userWon' : 'aiWon';
     }
   },
   methods: {
+    changeLanguage(lang) {
+      this.$i18n.locale = lang;
+    },
     generateOrRetrieveSessionId() {
       let sessionId = this.getCookie('sessionId');
       if (!sessionId) {
@@ -144,7 +150,7 @@ export default {
       try {
         const move = await GameApi.opponentShot();
         await this.updateGameState();
-        this.playerGridFeedbackMessage = move.isHit ? (move.isSunk ? 'Opponent sunk your ship!' : 'Opponent hit!') : 'Opponent missed!';
+        this.playerGridFeedbackMessage = move.isHit ? (move.isSunk ? 'feedbackOpponentSink' : 'feedbackOpponentHit') : 'feedbackOpponentMiss';
       } catch (error) {
         console.error('Failed to get opponent move:', error);
       }
@@ -154,7 +160,7 @@ export default {
       try {
         const move = await GameApi.userShot({ x, y });
         await this.updateGameState();
-        this.opponentGridFeedbackMessage = move.isHit ? (move.isSunk ? 'You sunk a ship!' : 'You hit!') : 'You missed!';
+        this.opponentGridFeedbackMessage = move.isHit ? (move.isSunk ? 'feedbackPlayerSink' : 'feedbackPlayerHit') : 'feedbackPlayerMiss';
       } catch (error) {
         console.error('Failed to handle user shot:', error);
       }
@@ -212,7 +218,7 @@ export default {
       this.playerGridFeedbackMessage = '';
     }
   },
-  mounted(){
+  mounted() {
     this.generateOrRetrieveSessionId();
   }
 };
@@ -223,6 +229,17 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.language-switcher {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.language-switcher img {
+  cursor: pointer;
+  margin: 0 10px;
 }
 
 .grids {
@@ -251,5 +268,16 @@ export default {
 
 .modal-content {
   text-align: center;
+}
+
+.language-switcher .fi {
+  margin-right: 8px; /* Add spacing between the span elements */
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.language-switcher .fi:last-child {
+  margin-right: 0; /* Remove right margin for the last element */
 }
 </style>
