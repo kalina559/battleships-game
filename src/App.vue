@@ -12,7 +12,7 @@
         <OpponentGrid :ships="opponentShips" :showShips=false :shots="playerShots" @cellSelected="handleUserShot"
           :disabled="currentPlayer !== 'player'" :feedbackMessage=$t(opponentGridFeedbackMessage) />
         <UserGrid :ships="playerShips" :shots="opponentShots" @shipPlaced="onShipPlaced"
-          :feedbackMessage=$t(playerGridFeedbackMessage) />
+          :feedbackMessage=$t(playerGridFeedbackMessage) :shipsCanTouch="shipsCanTouch" />
       </div>
       <Help />
       <div v-if="winner" class="modal">
@@ -58,7 +58,8 @@ export default {
       winner: null,
       opponentGridFeedbackMessage: '',
       playerGridFeedbackMessage: '',
-      sessionId: null
+      sessionId: null,
+      shipsCanTouch: false
     };
   },
   computed: {
@@ -102,12 +103,16 @@ export default {
       const expires = new Date(Date.now() + days * 864e5).toUTCString();
       document.cookie = `${name}=${value}; expires=${expires}; path=/`;
     },
-    async startGame(aiType) {
+    async startGame(aiType, shipsCanTouch) {
       this.selectedAi = aiType;
       this.gameStarted = true;
       try {
         this.opponentShips = await GameApi.getOpponentShips();
         this.opponentShipsSet = true;
+
+        console.log("App.vue ships can touch: " + shipsCanTouch);
+
+        this.shipsCanTouch = shipsCanTouch
         this.checkPhaseTransition();
       } catch (error) {
         console.error('Failed to get opponent ships:', error);
@@ -184,6 +189,7 @@ export default {
         this.opponentShips.splice(0, this.opponentShips.length, ...gameState.opponentShips);
         this.playerShots.splice(0, this.playerShots.length, ...gameState.playerShots);
         this.opponentShots.splice(0, this.opponentShots.length, ...gameState.opponentShots);
+        this.shipsCanTouch = gameState.shipsCanTouch;
 
       } catch (error) {
         console.error('Failed to update game state:', error);

@@ -47,7 +47,11 @@ export default {
     feedbackMessage: {
       type: String,
       default: ''
-    }
+    },
+    shipsCanTouch: {
+      type: Boolean,
+      default: false
+    },
   },
   data() {
     return {
@@ -116,7 +120,11 @@ export default {
       for (let i = 0; i < size; i++) {
         const x = direction === 'horizontal' ? position.x : position.x + i;
         const y = direction === 'horizontal' ? position.y + i : position.y;
-        if (x < 0 || x >= 10 || y < 0 || y >= 10 || this.isOccupied(x, y) || this.isAdjacentOccupied(x, y)) {
+
+        console.log("UserGrid.vue ships can touch: " + this.shipsCanTouch);
+
+
+        if (x < 0 || x >= 10 || y < 0 || y >= 10 || this.isOccupied(x, y) || ( !this.shipsCanTouch && this.isAdjacentOccupied(x, y))) {
           return false;
         }
       }

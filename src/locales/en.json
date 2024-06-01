@@ -6,6 +6,7 @@
 
     "selectAiTypeHeader": "Select AI Type",
     "selectAiTypeDefaultOption": "Please select any type",
+    "ShipsCanTouchText": "Ships can touch each other",
     "startGame": "Start game",
     "selectAiTypeWarning": "You have to choose an AI type to proceed",
 

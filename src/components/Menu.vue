@@ -7,6 +7,12 @@
         <option v-for="aiType in aiTypes" :key="aiType.id" :value="aiType.id">{{ aiType.name }}</option>
       </select>
     </div>
+
+    <h2>{{ $t('ShipsCanTouchText') }}</h2>
+
+    <input type="checkbox" id="shipsCanTouch" v-model="shipsCanTouch">
+
+    <h2></h2>
     <button @click="startGame">{{ $t('startGame') }}</button>
   </div>
 </template>
@@ -20,7 +26,9 @@ export default {
   data() {
     return {
       aiTypes: [],
-      selectedAiType: -1
+      ruleTypes: [],
+      selectedAiType: -1,
+      shipsCanTouch: 0
     };
   },
   async created() {
@@ -37,7 +45,11 @@ export default {
         if (this.selectedAiType != -1) {
           await GameApi.clearGameState();
           await GameApi.selectAiType(this.selectedAiType);
-          this.$emit('startGame', this.selectedAiType);
+          await GameApi.updateRules(this.shipsCanTouch);
+
+          console.log("Menu.vue ships can touch: " + this.shipsCanTouch);
+
+          this.$emit('startGame', this.selectedAiType, this.shipsCanTouch);
         } else {
           alert(this.$t('selectAiTypeWarning'));
         }

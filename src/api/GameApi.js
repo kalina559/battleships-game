@@ -30,6 +30,9 @@ export default {
   async selectAiType(type) {
     await apiClient.post('/AiType/select', type);
   },
+  async updateRules(shipsCanTouch) {
+    await apiClient.post('/Rules/update', shipsCanTouch);
+  },
   async getOpponentShips() {
     const response = await apiClient.get('/ShipLocations/opponent');
     return response.data;
