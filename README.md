@@ -1,4 +1,4 @@
-# battleship-game
+# battleships-game
 
 ## Project setup
 ```

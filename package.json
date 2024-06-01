@@ -1,8 +1,8 @@
 {
-  "name": "battleship-game",
+  "name": "battleships-game",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://kalina559.github.io/battleship-game/",
+  "homepage": "https://kalina559.github.io/battleships-game/",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
