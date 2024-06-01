@@ -6,7 +6,7 @@ import pl from './locales/pl.json';
 import 'flag-icons/css/flag-icons.min.css';
 
 const i18n = createI18n({
-    locale: 'en', // set locale
+    locale: 'pl', // set locale
     fallbackLocale: 'en', // set fallback locale
     messages: { en, pl }, // set locale messages
   });
