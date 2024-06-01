@@ -46,9 +46,7 @@ export default {
           await GameApi.clearGameState();
           await GameApi.selectAiType(this.selectedAiType);
           await GameApi.updateRules(this.shipsCanTouch);
-
-          console.log("Menu.vue ships can touch: " + this.shipsCanTouch);
-
+          
           this.$emit('startGame', this.selectedAiType, this.shipsCanTouch);
         } else {
           alert(this.$t('selectAiTypeWarning'));

@@ -121,9 +121,6 @@ export default {
         const x = direction === 'horizontal' ? position.x : position.x + i;
         const y = direction === 'horizontal' ? position.y + i : position.y;
 
-        console.log("UserGrid.vue ships can touch: " + this.shipsCanTouch);
-
-
         if (x < 0 || x >= 10 || y < 0 || y >= 10 || this.isOccupied(x, y) || ( !this.shipsCanTouch && this.isAdjacentOccupied(x, y))) {
           return false;
         }

@@ -109,9 +109,6 @@ export default {
       try {
         this.opponentShips = await GameApi.getOpponentShips();
         this.opponentShipsSet = true;
-
-        console.log("App.vue ships can touch: " + shipsCanTouch);
-
         this.shipsCanTouch = shipsCanTouch
         this.checkPhaseTransition();
       } catch (error) {
