@@ -151,6 +151,8 @@ export default {
         const move = await GameApi.opponentShot();
         await this.updateGameState();
         this.playerGridFeedbackMessage = move.isHit ? (move.isSunk ? 'feedbackOpponentSink' : 'feedbackOpponentHit') : 'feedbackOpponentMiss';
+
+        this.checkIfWinner(move, 'opponent');
       } catch (error) {
         console.error('Failed to get opponent move:', error);
       }
@@ -161,33 +163,30 @@ export default {
         const move = await GameApi.userShot({ x, y });
         await this.updateGameState();
         this.opponentGridFeedbackMessage = move.isHit ? (move.isSunk ? 'feedbackPlayerSink' : 'feedbackPlayerHit') : 'feedbackPlayerMiss';
+
+        this.checkIfWinner(move, 'player');
       } catch (error) {
         console.error('Failed to handle user shot:', error);
       }
+    },
+    async checkIfWinner(move, side) {
+      if(move.win == true){
+          this.winner = side;
+        } else {
+          this.switchTurn();
+        }
     },
     async updateGameState() {
       try {
         const gameState = await GameApi.getGameState();
 
-        // Update arrays reactively
         this.playerShips.splice(0, this.playerShips.length, ...gameState.userShips);
         this.opponentShips.splice(0, this.opponentShips.length, ...gameState.opponentShips);
         this.playerShots.splice(0, this.playerShots.length, ...gameState.playerShots);
         this.opponentShots.splice(0, this.opponentShots.length, ...gameState.opponentShots);
 
-        this.checkWinCondition(gameState);
-        this.switchTurn();
       } catch (error) {
         console.error('Failed to update game state:', error);
-      }
-    },
-    checkWinCondition(gameState) {
-      const allPlayerShipsSunk = gameState.userShips.every(ship => ship.isSunk);
-      const allOpponentShipsSunk = gameState.opponentShips.every(ship => ship.isSunk);
-      if (allPlayerShipsSunk) {
-        this.winner = 'opponent';
-      } else if (allOpponentShipsSunk) {
-        this.winner = 'player';
       }
     },
     switchTurn() {
@@ -198,9 +197,6 @@ export default {
           this.opponentMove();
         }, 1000);
       }
-    },
-    randomCoordinate() {
-      return Math.floor(Math.random() * 10);
     },
     resetGame() {
       this.gameStarted = false;

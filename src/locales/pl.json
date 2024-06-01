@@ -10,7 +10,7 @@
     "selectAiTypeWarning": "Musisz wybrać jakiś rodzaj AI, aby kontynuować",
 
     "helpHeader": "Pomoc",
-    "helpMessage": "Użyj strzałek aby ustawić swoje statki. Może je obracać używając przycisku 'Obróć'. Kliknij na planszę przeciwnika, aby wybrać gdzie chcesz oddać strzał.",
+    "helpMessage": "Użyj strzałek aby ustawić swoje statki. Może je obracać używając przycisku 'Obróć'. Statki nie mogą sąsiadować ze sobą krawędziami ani rogami. Kliknij na planszę przeciwnika, aby wybrać gdzie chcesz oddać strzał.",
 
     "rotateButton": "Obróć",
     "deployButton": "Ustaw",
