@@ -11,7 +11,7 @@
     "selectAiTypeWarning": "You have to choose an AI type to proceed",
 
     "helpHeader": "Help",
-    "helpMessage": "Use arrows to place your ships. You can rotate them using 'Rotate' key. The ships can't touch each other with sides or edges. Click on opponent's grid to select the cell you want to shoot at.",
+    "helpMessage": "Use arrows to place your ships. You can rotate them using 'Rotate' key. Click on opponent's grid to select the cell you want to shoot at.",
 
     "rotateButton": "Rotate",
     "deployButton": "Deploy",
