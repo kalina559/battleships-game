@@ -4,13 +4,13 @@
     <div v-if="aiTypes.length">
       <select id="ai-select" v-model="selectedAiType">
         <option disabled value=-1>{{ $t('selectAiTypeDefaultOption') }}</option>
-        <option v-for="aiType in aiTypes" :key="aiType.id" :value="aiType.id">{{ aiType.name }}</option>
+        <option v-for="aiType in aiTypes" :key="aiType.type" :value="aiType.type">{{ getDescription(aiType) }}</option>
       </select>
     </div>
 
     <h2>{{ $t('ShipsCanTouchText') }}</h2>
 
-    <input type="checkbox" id="shipsCanTouch" v-model="shipsCanTouch">
+    <input type="checkbox" id="shipsCanTouch" v-model="shipsCanTouch" @change="onCheckboxChange">
 
     <h2></h2>
     <button @click="startGame">{{ $t('startGame') }}</button>
@@ -32,12 +32,7 @@ export default {
     };
   },
   async created() {
-    try {
-      this.aiTypes = await GameApi.getAiTypes();
-      console.log(this.aiTypes)
-    } catch (error) {
-      console.error('Failed to load AI types:', error);
-    }
+    this.loadAiTypes();
   },
   methods: {
     async startGame() {
@@ -55,6 +50,28 @@ export default {
       } catch (error) {
         console.error('Failed to start the game', error);
       }
+    },
+    async onCheckboxChange() {
+      this.loadAiTypes();
+    },
+    async loadAiTypes() {
+      try {
+        this.aiTypes = await GameApi.getAiTypes(this.shipsCanTouch);
+
+        if(!this.isSelectedAiTypeValid())
+        {
+          this.selectedAiType = -1;
+        }
+      } catch (error) {
+        console.error('Failed to load AI types:', error);
+      }
+    },
+    getDescription(aiType) {
+      const locale = this.$i18n.locale;
+      return aiType.description[locale] || aiType.description['en'];
+    },
+    isSelectedAiTypeValid() {
+      return this.aiTypes.some(aiType => aiType.type === this.selectedAiType);
     }
   },
 };

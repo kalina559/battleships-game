@@ -23,8 +23,8 @@ apiClient.interceptors.request.use(config => {
 
 export default {
   setSessionId,
-  async getAiTypes() {
-    const response = await apiClient.get('/AiType/list');
+  async getAiTypes(shipsCanTouch) {
+    const response = await apiClient.post('/AiType/list', shipsCanTouch);
     return response.data;
   },
   async selectAiType(type) {

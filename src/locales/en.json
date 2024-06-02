@@ -21,10 +21,12 @@
     "yourTurn": "Your turn",
     "opponentsTurn": "Opponent's turn",
 
+    "feedbackOpponentPlaceholder": "...",
     "feedbackOpponentMiss": "Opponent missed!",
     "feedbackOpponentHit": "Opponent hit!",
     "feedbackOpponentSink": "Opponent sunk your ship!",
 
+    "feedbackPlayerPlaceholder": "...",
     "feedbackPlayerMiss": "You missed!",
     "feedbackPlayerHit": "You hit!",
     "feedbackPlayerSink": "You sunk a ship!",

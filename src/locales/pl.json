@@ -21,10 +21,12 @@
     "yourTurn": "Twoja tura",
     "opponentsTurn": "Tura przeciwnika",
 
+    "feedbackOpponentPlaceholder": "...",
     "feedbackOpponentMiss": "Przeciwnik spudłował!",
     "feedbackOpponentHit": "Przeciwnik trafił!",
     "feedbackOpponentSink": "Przeciwnik zatopił Twój statek!",
 
+    "feedbackPlayerPlaceholder": "...",
     "feedbackPlayerMiss": "Spudłowałeś!",
     "feedbackPlayerHit": "Trafiłeś!",
     "feedbackPlayerSink": "Zatopiłeś statek!",

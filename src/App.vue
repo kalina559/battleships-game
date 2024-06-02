@@ -56,8 +56,8 @@ export default {
       opponentShots: [],
       playerShots: [],
       winner: null,
-      opponentGridFeedbackMessage: '',
-      playerGridFeedbackMessage: '',
+      opponentGridFeedbackMessage: 'feedbackOpponentPlaceholder',
+      playerGridFeedbackMessage: 'feedbackPlayerPlaceholder',
       sessionId: null,
       shipsCanTouch: false
     };
