@@ -45,7 +45,7 @@ export default {
     return response.data;
   },
   async opponentShot() {
-    const response = await apiClient.post('shot/opponent');
+    const response = await apiClient.get('shot/opponent');
     return response.data;
   },
   async getGameState() {
