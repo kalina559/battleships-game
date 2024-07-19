@@ -182,10 +182,10 @@ export default {
       try {
         const gameState = await GameApi.getGameState();
 
-        this.playerShips.splice(0, this.playerShips.length, ...gameState.userShips);
-        this.opponentShips.splice(0, this.opponentShips.length, ...gameState.opponentShips);
-        this.playerShots.splice(0, this.playerShots.length, ...gameState.playerShots);
-        this.opponentShots.splice(0, this.opponentShots.length, ...gameState.opponentShots);
+        this.playerShips.splice(0, this.playerShips.length, ...gameState.human.ships);
+        this.opponentShips.splice(0, this.opponentShips.length, ...gameState.bot.ships);
+        this.playerShots.splice(0, this.playerShots.length, ...gameState.player.shots);
+        this.opponentShots.splice(0, this.opponentShots.length, ...gameState.bot.shots);
         this.shipsCanTouch = gameState.shipsCanTouch;
 
       } catch (error) {
