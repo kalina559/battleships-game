@@ -2,7 +2,7 @@
   <div class="menu">
     <h2>{{ $t('selectAiTypeHeader') }}</h2>
     <div v-if="aiTypes.length">
-      <select id="ai-select" v-model="selectedAiType">
+      <select id="ai-select" v-model="selectedAiType" class="responsive-select">
         <option disabled value=-1>{{ $t('selectAiTypeDefaultOption') }}</option>
         <option v-for="aiType in aiTypes" :key="aiType.type" :value="aiType.type">{{ getDescription(aiType) }}</option>
       </select>
@@ -82,5 +82,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.responsive-select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 1em;
 }
 </style>
