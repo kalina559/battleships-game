@@ -1,11 +1,14 @@
 <template>
   <div class="menu">
-    <h2>{{ $t('selectAiTypeHeader') }}</h2>
-    <div v-if="aiTypes.length">
-      <select id="ai-select" v-model="selectedAiType" class="responsive-select">
-        <option disabled value=-1>{{ $t('selectAiTypeDefaultOption') }}</option>
-        <option v-for="aiType in aiTypes" :key="aiType.type" :value="aiType.type">{{ getDescription(aiType) }}</option>
-      </select>
+    <div v-if="isLocalEnvironment">
+      <h2>{{ $t('selectAiTypeHeader') }}</h2>
+      <div v-if="aiTypes.length">
+        <select id="ai-select" v-model="selectedAiType" class="responsive-select">
+          <option :value="chooseRandomAlgorithm">{{ $t('chooseRandomAlgorithm') }}</option>
+          <option v-for="aiType in aiTypes" :key="aiType.type" :value="aiType.type">{{ getDescription(aiType) }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <h2>{{ $t('ShipsCanTouchText') }}</h2>
@@ -20,6 +23,8 @@
 
 <script>
 import GameApi from '../api/GameApi';
+// eslint-disable-next-line
+const CHOOSE_RANDOM_ALGORITHM = -1;
 
 export default {
   name: 'Menu',
@@ -27,9 +32,17 @@ export default {
     return {
       aiTypes: [],
       ruleTypes: [],
-      selectedAiType: -1,
-      shipsCanTouch: false
+      selectedAiType: CHOOSE_RANDOM_ALGORITHM,
+      shipsCanTouch: false,
+      environment: process.env.NODE_ENV,
+      chooseRandomAlgorithm: CHOOSE_RANDOM_ALGORITHM
     };
+  },
+  computed: {
+    isLocalEnvironment() {
+      console.log('env ' + this.environment)
+      return this.environment === 'development';
+    }
   },
   async created() {
     this.loadAiTypes();
@@ -37,16 +50,19 @@ export default {
   methods: {
     async startGame() {
       try {
-        if (this.selectedAiType != -1) {
-          await GameApi.clearGameState();
-          await GameApi.selectAiType(this.selectedAiType);
-          await GameApi.updateRules(this.shipsCanTouch);
+        var aiType = this.selectedAiType;
 
-          this.$emit('startGame', this.selectedAiType, this.shipsCanTouch);
-        } else {
-          alert(this.$t('selectAiTypeWarning'));
+        if (aiType == CHOOSE_RANDOM_ALGORITHM) {
+          var randomIndex = Math.floor(Math.random() * this.aiTypes.length);
+          aiType = this.aiTypes[randomIndex]
+          console.log('radomly selected ' + aiType.type)
         }
 
+        await GameApi.clearGameState();
+        await GameApi.selectAiType(aiType.type);
+        await GameApi.updateRules(this.shipsCanTouch);
+
+        this.$emit('startGame', this.selectedAiType, this.shipsCanTouch);
       } catch (error) {
         console.error('Failed to start the game', error);
       }
@@ -58,8 +74,7 @@ export default {
       try {
         this.aiTypes = await GameApi.getAiTypes(this.shipsCanTouch);
 
-        if(!this.isSelectedAiTypeValid())
-        {
+        if (!this.isSelectedAiTypeValid()) {
           this.selectedAiType = -1;
         }
       } catch (error) {
