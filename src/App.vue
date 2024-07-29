@@ -10,7 +10,7 @@
       <div v-if="gameStarted" class="grids">
         <div class="phase">{{ $t(gamePhaseText) }}</div>
         <OpponentGrid :ships="opponentShips" :showShips=false :shots="playerShots" @cellSelected="handleUserShot"
-          :disabled="currentPlayer !== 'player'" :feedbackMessage=$t(opponentGridFeedbackMessage) />
+          :disabled="currentPlayer !== user" :feedbackMessage=$t(opponentGridFeedbackMessage) />
         <UserGrid :ships="playerShips" :shots="opponentShots" @shipPlaced="onShipPlaced"
           :feedbackMessage=$t(playerGridFeedbackMessage) :shipsCanTouch="shipsCanTouch" />
       </div>
@@ -34,6 +34,32 @@ import Help from './components/Help.vue';
 import Menu from './components/Menu.vue';
 import GameApi from './api/GameApi';
 
+const FEEDBACK_OPPONENT_PLACEHOLDER = 'feedbackOpponentPlaceholder';
+const FEEDBACK_PLAYER_PLACEHOLDER = 'feedbackPlayerPlaceholder';
+const FEEDBACK_PLAYER_SINK = 'feedbackPlayerSink';
+const FEEDBACK_PLAYER_HIT = 'feedbackPlayerHit';
+const FEEDBACK_PLAYER_MISS = 'feedbackPlayerMiss';
+const FEEDBACK_OPPONENT_SINK = 'feedbackOpponentSink';
+const FEEDBACK_OPPONENT_HIT = 'feedbackOpponentHit';
+const FEEDBACK_OPPONENT_MISS = 'feedbackOpponentMiss';
+
+const WAITING_FOR_OPPONENT_SHIPS = 'waitingForOpponentToDeployShips';
+const WAITING_FOR_PLAYER_SHIPS = 'waitingForUserToDeployShips';
+const PLAYER_TURN = 'yourTurn';
+const OPPONENT_TURN = 'opponentsTurn';
+
+const GamePhase = Object.freeze({
+    WaitingForOpponentShips: 1,
+    WaitingForPlayerShips: 2,
+    PlayerTurn: 3,
+    OpponentTurn: 4
+});
+
+const Player = Object.freeze({
+    User: 1,
+    Opponent: 2
+});
+
 export default {
   name: 'App',
   components: {
@@ -46,8 +72,7 @@ export default {
   data() {
     return {
       gameStarted: false,
-      selectedAi: null,
-      gamePhase: 'placingShips',
+      gamePhase: GamePhase.WaitingForPlayerShips,
       playerShips: [],
       opponentShips: [],
       playerShipsSet: false,
@@ -56,29 +81,30 @@ export default {
       opponentShots: [],
       playerShots: [],
       winner: null,
-      opponentGridFeedbackMessage: 'feedbackOpponentPlaceholder',
-      playerGridFeedbackMessage: 'feedbackPlayerPlaceholder',
+      opponentGridFeedbackMessage: FEEDBACK_OPPONENT_PLACEHOLDER,
+      playerGridFeedbackMessage: FEEDBACK_PLAYER_PLACEHOLDER,
       sessionId: null,
-      shipsCanTouch: false
+      shipsCanTouch: false,
+      user: Player.User
     };
   },
   computed: {
     gamePhaseText() {
       switch (this.gamePhase) {
-        case 'placingShips':
-          return 'waitingForUserToDeployShips';
-        case 'waitingOpponent':
-          return 'waitingForOpponentToDeployShips';
-        case 'playerTurn':
-          return 'yourTurn';
-        case 'opponentTurn':
-          return 'opponentsTurn';
+        case GamePhase.WaitingForPlayerShips:
+          return WAITING_FOR_PLAYER_SHIPS;
+        case GamePhase.WaitingForOpponentShips:
+          return WAITING_FOR_OPPONENT_SHIPS;
+        case GamePhase.PlayerTurn:
+          return PLAYER_TURN;
+        case GamePhase.OpponentTurn:
+          return OPPONENT_TURN;
         default:
           return '';
       }
     },
     winnerMessage() {
-      return this.winner === 'player' ? 'userWon' : 'aiWon';
+      return this.winner === Player.User ? 'userWon' : 'aiWon';
     }
   },
   methods: {
@@ -103,8 +129,7 @@ export default {
       const expires = new Date(Date.now() + days * 864e5).toUTCString();
       document.cookie = `${name}=${value}; expires=${expires}; path=/`;
     },
-    async startGame(aiType, shipsCanTouch) {
-      this.selectedAi = aiType;
+    async startGame(shipsCanTouch) {
       this.gameStarted = true;
       try {
         this.opponentShips = await GameApi.getOpponentShips();
@@ -134,39 +159,39 @@ export default {
       if (this.playerShipsSet && this.opponentShipsSet) {
         this.determineStartingPlayer();
       } else if (this.playerShipsSet) {
-        this.gamePhase = 'waitingOpponent';
+        this.gamePhase = GamePhase.WaitingForOpponentShips;
       } else if (this.opponentShipsSet) {
-        this.gamePhase = 'placingShips';
+        this.gamePhase = GamePhase.WaitingForPlayerShips;
       }
     },
     determineStartingPlayer() {
       const randomStart = Math.random() < 0.5;
-      this.currentPlayer = randomStart ? 'player' : 'opponent';
-      this.gamePhase = randomStart ? 'playerTurn' : 'opponentTurn';
+      this.currentPlayer = randomStart ? Player.User : Player.Opponent;
+      this.gamePhase = randomStart ? GamePhase.PlayerTurn : GamePhase.OpponentTurn;
       if (!randomStart) {
         this.opponentMove();
       }
     },
     async opponentMove() {
-      if (this.currentPlayer !== 'opponent') return;
+      if (this.currentPlayer !== Player.Opponent) return;
       try {
         const move = await GameApi.opponentShot();
         await this.updateGameState();
-        this.playerGridFeedbackMessage = move.isHit ? (move.isSunk ? 'feedbackOpponentSink' : 'feedbackOpponentHit') : 'feedbackOpponentMiss';
+        this.playerGridFeedbackMessage = move.isHit ? (move.isSunk ? FEEDBACK_OPPONENT_SINK : FEEDBACK_OPPONENT_HIT) : FEEDBACK_OPPONENT_MISS;
 
-        this.checkIfWinner(move, 'opponent');
+        this.checkIfWinner(move, Player.Opponent);
       } catch (error) {
         console.error('Failed to get opponent move:', error);
       }
     },
     async handleUserShot(x, y) {
-      if (this.currentPlayer !== 'player') return;
+      if (this.currentPlayer !== Player.User) return;
       try {
         const move = await GameApi.userShot({ x, y });
         await this.updateGameState();
-        this.opponentGridFeedbackMessage = move.isHit ? (move.isSunk ? 'feedbackPlayerSink' : 'feedbackPlayerHit') : 'feedbackPlayerMiss';
+        this.opponentGridFeedbackMessage = move.isHit ? (move.isSunk ? FEEDBACK_PLAYER_SINK : FEEDBACK_PLAYER_HIT) : FEEDBACK_PLAYER_MISS;
 
-        this.checkIfWinner(move, 'player');
+        this.checkIfWinner(move, Player.User);
       } catch (error) {
         console.error('Failed to handle user shot:', error);
       }
@@ -193,9 +218,9 @@ export default {
       }
     },
     switchTurn() {
-      this.currentPlayer = this.currentPlayer === 'player' ? 'opponent' : 'player';
-      this.gamePhase = this.currentPlayer === 'player' ? 'playerTurn' : 'opponentTurn';
-      if (this.currentPlayer === 'opponent') {
+      this.currentPlayer = this.currentPlayer === Player.User ? Player.Opponent : Player.User;
+      this.gamePhase = this.currentPlayer === Player.User ? GamePhase.PlayerTurn : GamePhase.OpponentTurn;
+      if (this.currentPlayer === Player.Opponent) {
         setTimeout(() => {
           this.opponentMove();
         }, 1000);
@@ -203,8 +228,7 @@ export default {
     },
     resetGame() {
       this.gameStarted = false;
-      this.selectedAi = null;
-      this.gamePhase = 'placingShips';
+      this.gamePhase = GamePhase.WaitingForPlayerShips;
       this.playerShips = [];
       this.opponentShips = [];
       this.playerShipsSet = false;

@@ -54,15 +54,15 @@ export default {
 
         if (aiType == CHOOSE_RANDOM_ALGORITHM) {
           var randomIndex = Math.floor(Math.random() * this.aiTypes.length);
-          aiType = this.aiTypes[randomIndex]
-          console.log('radomly selected ' + aiType.type)
+          aiType = this.aiTypes[randomIndex].type
+          console.log('Randomly selected ' + aiType)
         }
 
         await GameApi.clearGameState();
-        await GameApi.selectAiType(aiType.type);
+        await GameApi.selectAiType(aiType);
         await GameApi.updateRules(this.shipsCanTouch);
 
-        this.$emit('startGame', this.selectedAiType, this.shipsCanTouch);
+        this.$emit('startGame', this.shipsCanTouch);
       } catch (error) {
         console.error('Failed to start the game', error);
       }
